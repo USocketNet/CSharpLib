@@ -27,6 +27,10 @@ The USocketNet is currently designed and developed for Unity Engine. It is a mul
 
 **Note:** USocketNet is not a WebSocket implementation. Although USocketNet indeed uses WebSocket as a transport when possible, it adds some metadata to each packet: the packet type, the namespace and the ack id when a message acknowledgement is needed. That is why a WebSocket client will not be able to successfully connect to a USocketNet server, and a USocketNet client will not be able to connect to a WebSocket server (like `ws://echo.websocket.org`) either.
 
+## Action Events
+
+OnPing
+
 ## Built With
 
 This project was made possible by NodeJS / OpenJS developers. Thank you for making server side development easy.
