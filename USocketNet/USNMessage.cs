@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Runtime.ExceptionServices;
 using System.Text;
+using USocketNet.EventArguments;
 using USocketNet.Model;
 
 namespace USocketNet
@@ -125,7 +127,7 @@ namespace USocketNet
 
         #endregion
 
-        #region Methods
+        #region Constructors
 
         /// <summary>
         /// Initialized the current instance of USocketNet module.
@@ -152,6 +154,7 @@ namespace USocketNet
             socket.OnConnected += SocketIO_OnConnected;
             socket.OnReconnecting += SocketIO_OnReconnecting;
             socket.OnDisconnected += SocketIO_OnDisconnected;
+            socket.OnReceivedEvent += SocketIO_EventReceived;
             socket.OnPing += SocketIO_OnPing;
             socket.OnPong += SocketIO_OnPong;
             socket.OnError += SocketIO_OnError;
@@ -198,6 +201,68 @@ namespace USocketNet
                 Log("Youre not connected yet!");
             }
         }
+
+        #endregion
+
+        #region Methods
+
+        /// <summary>
+        /// Send message privately to an existing wpid.
+        /// </summary>
+        /// <param name="wpid"></param>
+        /// <param name="message"></param>
+        public async void SendMessage(string wpid, string message, Action<Message> callback)
+        {
+            Message msg = new Message();
+                msg.r = wpid;
+                msg.m = message;
+
+            string sending = JsonConvert.SerializeObject(msg);
+
+            await socket.EmitAsync("pri", response =>
+            {
+                Log("Callback - " + response.ToString());
+                
+                Message returning = response.GetValue<Message>(0);
+
+                if(callback != null)
+                {
+                    callback(returning);
+                }
+            }, sending);
+        }
+
+        #endregion
+
+        #region Events
+
+        private void SocketIO_EventReceived(object sender, ReceivedEventArgs e)
+        {
+            Message msg = e.Response.GetValue<Message>(0);
+
+            if (e.Event.ToString() == "svr")
+            {
+                msg.types = MsgTypes.Server;
+            }
+            
+            else if (e.Event.ToString() == "pri")
+            {
+                msg.types = MsgTypes.Private;
+            }
+
+            else
+            {
+                msg.types = MsgTypes.Default;
+            }
+
+            if (OnMessage != null)
+            {
+                OnMessage(msg);
+            }
+
+            Log($"Event=>{ msg.ToString() } ");
+        }
+        public Action<Message> OnMessage = null;
 
         #endregion
 

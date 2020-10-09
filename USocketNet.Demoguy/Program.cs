@@ -18,6 +18,8 @@ namespace SocketIOClient.Sample
                 new USNOptions(false, "localhost", 10), 
                 new USNCreds("1", "0zS59CEKoHTgpjBwzFBpVpFR83ogYaKeJIoeVQkzvtB")
             );
+            USNMessage.Instance.OnConnected = OnConnection;
+            USNMessage.Instance.OnMessage = OnMessage;
             USNMessage.Instance.Connect();
 
             //Received Message with Callback.
@@ -28,6 +30,21 @@ namespace SocketIOClient.Sample
 
             Console.ReadLine();
         }
+
+        private static void OnConnection(string events)
+        {
+            /*throw new NotImplementedException();*/
+            Console.WriteLine("Connected! " + events);
+
+            USNMessage.Instance.SendMessage("15", "hELLO World!", null);
+        }
+
+        private static void OnMessage(Message msg)
+        {
+            /*throw new NotImplementedException();*/
+            Console.WriteLine("Message!" );
+        }
+
     }
 
     class ByteResponse
