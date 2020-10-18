@@ -6,14 +6,14 @@ using USocketNet.Model;
 
 namespace USocketNet
 {
-    public class USNMessage
+    public class USNDelivery
     {
         #region Fields
 
         /// <summary>
         /// Constant target port for this USocketNet module.
         /// </summary>
-        private const int protocol = 6060;
+        private const int protocol = 5050;
 
         /// <summary>
         /// Name of this USN Module.
@@ -109,19 +109,19 @@ namespace USocketNet
         /// <summary>
         /// Single instance of USocketNet Messaging modules.
         /// </summary>
-        public static USNMessage Instance
+        public static USNDelivery Instance
         {
             get
             {
                 if (instance == null)
                 {
-                    instance = new USNMessage();
+                    instance = new USNDelivery();
                 }
 
                 return instance;
             }
         }
-        private static USNMessage instance = null;
+        private static USNDelivery instance = null;
 
         #endregion
 
@@ -236,31 +236,26 @@ namespace USocketNet
 
         private void SocketIO_EventReceived(object sender, ReceivedEventArgs e)
         {
-            Message msg = e.Response.GetValue<Message>(0);
+            Notify notify = e.Response.GetValue<Notify>(0);
 
-            if (e.Event.ToString() == "svr")
+            if (e.Event.ToString() == "notify")
             {
-                msg.types = MsgTypes.Server;
-            }
-            
-            else if (e.Event.ToString() == "pri")
-            {
-                msg.types = MsgTypes.Private;
+                //msg.types = MsgTypes.Server;
             }
 
             else
             {
-                msg.types = MsgTypes.Default;
+                //msg.types = MsgTypes.Default;
             }
 
-            if (OnMessage != null)
+            if (OnNotify != null)
             {
-                OnMessage(msg);
+                OnNotify(notify);
             }
 
-            Log($"Event=>{ msg.ToString() } ");
+            Log($"Event=>{ notify.ToString() } ");
         }
-        public Action<Message> OnMessage = null;
+        public Action<Notify> OnNotify = null;
 
         #endregion
 

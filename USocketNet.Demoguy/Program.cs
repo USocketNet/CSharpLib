@@ -1,8 +1,5 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
 using System.Threading.Tasks;
 using USocketNet;
 using USocketNet.Model;
@@ -14,13 +11,13 @@ namespace SocketIOClient.Sample
     {
         static async Task Main(string[] args)
         {
-            USNMessage.Instance.Initialize(
+            USNDelivery.Instance.Initialize(
                 new USNOptions(false, "localhost", 10), 
                 new USNCreds("1", "0zS59CEKoHTgpjBwzFBpVpFR83ogYaKeJIoeVQkzvtB")
             );
-            USNMessage.Instance.OnConnected = OnConnection;
-            USNMessage.Instance.OnMessage = OnMessage;
-            USNMessage.Instance.Connect();
+            USNDelivery.Instance.OnConnected = OnConnection;
+            USNDelivery.Instance.OnNotify = OnNotify;
+            USNDelivery.Instance.Connect();
 
             //Received Message with Callback.
             /*socket.On("pri", response =>
@@ -35,14 +32,12 @@ namespace SocketIOClient.Sample
         {
             /*throw new NotImplementedException();*/
             Console.WriteLine("Connected! " + events);
-
-            USNMessage.Instance.SendMessage("15", "hELLO World!", null);
         }
 
-        private static void OnMessage(Message msg)
+        private static void OnNotify(Notify notify)
         {
             /*throw new NotImplementedException();*/
-            Console.WriteLine("Message!" );
+            Console.WriteLine("Notify!" + notify.data);
         }
 
     }
