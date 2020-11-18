@@ -169,7 +169,15 @@ namespace USocketNet
             {
                 if(!IsConnected)
                 {
-                    await socket.ConnectAsync();
+                    try
+                    {
+                        await socket.ConnectAsync();
+                    }
+
+                    catch (Exception ex)
+                    {
+                        Log("Exception: " + ex);
+                    }
                 }
                 
                 else

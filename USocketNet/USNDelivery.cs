@@ -18,7 +18,7 @@ namespace USocketNet
         /// <summary>
         /// Name of this USN Module.
         /// </summary>
-        private const string moduleName = "USocketNet Messaging Module";
+        private const string moduleName = "USocketNet Delivery Module";
 
         /// <summary>
         /// Check and Set if Logging is enabled.
@@ -169,7 +169,15 @@ namespace USocketNet
             {
                 if(!IsConnected)
                 {
-                    await socket.ConnectAsync();
+                    try
+                    {
+                        await socket.ConnectAsync();
+                    }
+
+                    catch (Exception ex)
+                    {
+                        Log("Exception: " + ex);
+                    }
                 }
                 
                 else
@@ -204,24 +212,35 @@ namespace USocketNet
 
         #region Methods
 
+        public async void JoinOrderChannel(string orderKey, Action<USNResponse> callback)
+        {
+            await socket.EmitAsync("join", response =>
+            {
+                Log("Callback - " + response.ToString());
+
+                USNResponse returning = response.GetValue<USNResponse>(0);
+
+                if (callback != null)
+                {
+                    callback(returning);
+                }
+            }, orderKey);
+        }
+
         /// <summary>
         /// Send message privately to an existing wpid.
         /// </summary>
-        /// <param name="wpid"></param>
-        /// <param name="message"></param>
-        public async void SendMessage(string wpid, string message, Action<Message> callback)
+        /// <param name="orderItem"></param>
+        /// <param name="callback"></param>
+        public async void SetOrderStatus(OrderItem orderItem, Action<USNResponse> callback)
         {
-            Message msg = new Message();
-                msg.r = wpid;
-                msg.m = message;
+            string sending = JsonConvert.SerializeObject(orderItem);
 
-            string sending = JsonConvert.SerializeObject(msg);
-
-            await socket.EmitAsync("pri", response =>
+            await socket.EmitAsync("status", response =>
             {
                 Log("Callback - " + response.ToString());
-                
-                Message returning = response.GetValue<Message>(0);
+
+                USNResponse returning = response.GetValue<USNResponse>(0);
 
                 if(callback != null)
                 {
@@ -236,26 +255,25 @@ namespace USocketNet
 
         private void SocketIO_EventReceived(object sender, ReceivedEventArgs e)
         {
-            Notify notify = e.Response.GetValue<Notify>(0);
-
             if (e.Event.ToString() == "notify")
             {
-                //msg.types = MsgTypes.Server;
+                // Do something...
             }
 
-            else
+            if (e.Event.ToString() == "status")
             {
-                //msg.types = MsgTypes.Default;
+                OrderItem orderStatus = e.Response.GetValue<OrderItem>(0);
+
+                if (OnOrderStatus != null)
+                {
+                    OnOrderStatus(orderStatus);
+                    Log($"Event=>{ orderStatus.ToString() } ");
+                }
             }
 
-            if (OnNotify != null)
-            {
-                OnNotify(notify);
-            }
-
-            Log($"Event=>{ notify.ToString() } ");
+            Log($"Event=>{ e.Event.ToString() } ");
         }
-        public Action<Notify> OnNotify = null;
+        public Action<OrderItem> OnOrderStatus = null;
 
         #endregion
 

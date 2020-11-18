@@ -13,10 +13,10 @@ namespace SocketIOClient.Sample
         {
             USNDelivery.Instance.Initialize(
                 new USNOptions(false, "localhost", 10), 
-                new USNCreds("1", "0zS59CEKoHTgpjBwzFBpVpFR83ogYaKeJIoeVQkzvtB")
+                new USNCreds("94", "cK4FK5CNr93YqJ7QD2vZmC6PNCBdxGYK6ilRHNkbzuT")
             );
             USNDelivery.Instance.OnConnected = OnConnection;
-            USNDelivery.Instance.OnNotify = OnNotify;
+            USNDelivery.Instance.OnOrderStatus = OnOrderStatus;
             USNDelivery.Instance.Connect();
 
             //Received Message with Callback.
@@ -32,12 +32,18 @@ namespace SocketIOClient.Sample
         {
             /*throw new NotImplementedException();*/
             Console.WriteLine("Connected! " + events);
+
+            USNDelivery.Instance.JoinOrderChannel("abc", null);
+
+            OrderItem oitem = new OrderItem();
+            oitem.key = "abc";
+            USNDelivery.Instance.SetOrderStatus(oitem, null);
         }
 
-        private static void OnNotify(Notify notify)
+        private static void OnOrderStatus(OrderItem order)
         {
             /*throw new NotImplementedException();*/
-            Console.WriteLine("Notify!" + notify.data);
+            Console.WriteLine("Order Status: " + order.status.ToString());
         }
 
     }
